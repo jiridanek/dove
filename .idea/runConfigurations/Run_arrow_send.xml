@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run arrow send" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="command" value="run --package dove --example arrow&#10; --&#10;connection-mode=client channel-mode=active operation=send id=quiver-sender-bbc11a1e scheme= host=127.0.0.1 port=5672 path=q0 duration=100 count=10000 rate=0 body-size=100 credit-window=1000 transaction-size=0 durable=0" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <option name="channel" value="DEFAULT" />
+    <option name="requiredFeatures" value="true" />
+    <option name="allFeatures" value="false" />
+    <option name="emulateTerminal" value="false" />
+    <option name="withSudo" value="false" />
+    <option name="backtrace" value="SHORT" />
+    <envs />
+    <option name="isRedirectInput" value="false" />
+    <option name="redirectInputPath" value="" />
+    <method v="2">
+      <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -43,23 +43,21 @@ fn main() {
         .idle_timeout(Duration::from_secs(5));
     let net =
         mio::MioNetwork::connect(&format!("{}:{}", host, port)).expect("Error opening network");
-
-
-
-    let mut transport = Transport::new(net, 1024);
+    let transport = Transport::new(net, 1024);
+    let connection = connect(transport, opts).expect("Error opening connection");
 
     let mut p = Poll::new().expect("Failed to create poll");
-    let id = Token(1024);
-    transport.network_mut().register(id, &mut p).unwrap();
-
-    let mut connection = connect(transport, opts).expect("Error opening connection");
-
     let waker = Arc::new(
         Waker::new(p.registry(), Token(u32::MAX as usize)).expect("Failed to create waker"),
     );
     let handle = connection.handle(waker.clone());
 
+    let id = Token(1024);
+    connection.transport().network_mut().register(id, &mut p).unwrap();
+
     // p.registry().register(net, t, )
+
+    let mut received = Vec::new();
 
     let mut i = 0;
 
@@ -67,71 +65,23 @@ fn main() {
     loop {
         p.poll(&mut events, Some(Duration::from_secs(2))).unwrap();  // only one socket to poll on here
         println!("polled is empty {}, {:?}", events.is_empty(), events);
-        let mut received = Vec::new();
         let result = connection.process(&mut received);
         println!("received {:?}, result {:?}", received, result);
-        // This means that we should poll again to await further I/O action for this driver.
-
         if let Err(IoError(err)) = result {
             if err.kind() == ErrorKind::WouldBlock {
-                // continue;  // need to poll again, then run connection.process
+                // continue;
             }
         }
         if received.len() != 0 {
             println!("received {:?}", received);
+            exit(0);
         }
         i +=1;
-        if i == 5 {
+        if i == 10 {
             println!("sending open");
             handle.open(Open::new("aaaa")).unwrap();
             connection.flush().unwrap();
         }
-
-        for frame in received {
-            match frame {
-                Frame::AMQP(frame) => {
-                    match frame.performative {
-                        None => {}
-                        Some(performative) => {
-                            match performative {
-                                Performative::Open(_) => {
-                                    println!("open");
-                                }
-                                Performative::Close(_) => {
-                                    println!("close");
-                                }
-                                Performative::Begin(_) => {
-                                    println!("begin");
-                                }
-                                Performative::End(_) => {
-                                    println!("end");
-                                }
-                                Performative::Attach(_) => {
-                                    println!("attach");
-                                }
-                                Performative::Detach(_) => {
-                                    println!("detach");
-                                }
-                                Performative::Flow(_) => {
-                                    println!("flow");
-                                }
-                                Performative::Transfer(_) => {
-                                    println!("transfer");
-                                }
-                                Performative::Disposition(_) => {
-                                    println!("disposition");
-                                }
-                            }
-                        }
-                    }
-                }
-                Frame::SASL(frame) => {
-                    unreachable!()
-                }
-            }
-        }
-
-
     }
 
 
