@@ -98,6 +98,7 @@ impl Buffer {
     }
 
     fn fill(&mut self, reader: &mut dyn Read) -> Result<&[u8]> {
+        // this must block if the data are not yet outstanding to be received?
         if self.position < self.capacity {
             let len = reader.read(&mut self.buffer[self.position..self.capacity])?;
 
@@ -238,13 +239,19 @@ impl<N: Network> Transport<N> {
     }
 
     pub fn read_protocol_header(&mut self) -> Result<Option<ProtocolHeader>> {
+        println!("1");
         let mut buf = self.incoming.peek();
+        println!("2");
         if buf.len() >= 8 {
             let header = ProtocolHeader::decode(&mut buf)?;
+            println!("3");
             self.incoming.consume(8);
+            println!("4");
             Ok(Some(header))
         } else {
+            println!("5");
             self.incoming.fill(&mut self.network)?;
+            println!("6");
             Ok(None)
         }
     }

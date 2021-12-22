@@ -442,7 +442,7 @@ impl ContainerInner {
             match result {
                 Ok(_) => {}
                 // This means that we should poll again to await further I/O action for this driver.
-                Err(AmqpError::IoError(ref e)) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                Err(AmqpError::IoError(ref e)) if e.kind() == std::io::ErrorKind::WouldBlock => { // need this for send_framing.rs
                     break Ok(());
                 }
                 Err(ref e) => {
@@ -602,7 +602,6 @@ impl Sender {
                 })
             },
             |mut p| {
-                p.message_id = message_id.clone();
                 Some(p)
             },
         );

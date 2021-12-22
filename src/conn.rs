@@ -13,6 +13,7 @@ use crate::sasl::*;
 use crate::transport::*;
 use async_channel::Sender;
 use std::sync::Arc;
+use std::thread::sleep;
 use std::time::Duration;
 use std::vec::Vec;
 
@@ -203,8 +204,13 @@ impl<N: Network> Connection<N> {
                     }
                     self.header_sent = true;
                 }
+                println!("0");
                 self.transport.flush()?;
+                println!("a");
+                // received [], result Err(IoError(Os { code: 11, kind: WouldBlock, message: "Resource temporarily unavailable" }))
+                // sleep(Duration::from_millis(100));
                 let header = self.transport.read_protocol_header()?;
+                println!("b");
                 if let Some(header) = header {
                     match header {
                         SASL_10_HEADER if self.sasl.is_some() => {
